@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
 import userRouter from "./Routes/user";
+import adminRouter from "./Routes/admin";
 
 const app = express();
 dotenv.config();
@@ -25,3 +26,4 @@ app.use(cors()); // To enable Cross Origin Requests
 app.use(express.json()); // To easily parse body in routes.
 
 app.use("/user", userRouter);
+app.use("/admin", adminRouter);
