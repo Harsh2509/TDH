@@ -1,6 +1,7 @@
 import { User } from "../Database/index";
 import express from "express";
 import * as jwt from "jsonwebtoken";
+import userAuthentication from "../Middlewares/userAuth";
 
 const router = express.Router();
 const secret = process.env.JWT_SECRET || "ThisIsTemporarySecretInUse";
@@ -49,6 +50,10 @@ router.post("/login", async (req, res) => {
     });
     res.json({ message: "Logged in successfully!", token });
   }
+});
+
+router.get("/test", userAuthentication, (req, res) => {
+  res.send("All is well here!");
 });
 
 export default router;

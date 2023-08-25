@@ -23,8 +23,16 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Event = exports.User = void 0;
+exports.Admin = exports.Event = exports.User = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
+var University;
+(function (University) {
+    University["GEU"] = "geu";
+    University["GEHU"] = "gehu";
+})(University || (University = {}));
+function emailValidator(email) {
+    return /^[a-zA-Z0-9_\-]+@[a-zA-Z0-9_\-]+\.[a-zA-Z]{2,4}$/.test(email);
+}
 const userSchema = new mongoose_1.Schema({
     name: {
         type: String,
@@ -37,18 +45,22 @@ const userSchema = new mongoose_1.Schema({
         lowercase: true,
         trim: true,
         validate: {
-            validator: (email) => {
-                /^[a-zA-Z0-9_\-]+@[a-zA-Z0-9_\-]+\.[a-zA-Z]{2,4}$/.test(email);
-            },
+            validator: emailValidator,
             message: "Invalid Email passed to mongoose. (coming from userSchema)",
         },
     },
-    password: { type: String, required: true },
+    password: { type: String, required: true, minLength: 8 },
     course: { type: String, required: true },
     admissionNo: { type: Number, unique: true, required: true },
     certificates: [String],
     phoneNo: { type: Number, required: true, min: 1000000000 },
     events: [{ type: mongoose_1.Schema.Types.ObjectId, ref: "Event" }],
+    branch: { type: String, required: true },
+    university: {
+        type: String,
+        enum: [University.GEHU, University.GEU],
+        required: true,
+    },
 }, {
     timestamps: true, // To store createdAt and updatedAt
 });
@@ -62,5 +74,29 @@ const eventSchema = new mongoose_1.Schema({
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
 });
+const adminSchema = new mongoose_1.Schema({
+    name: {
+        type: String,
+        required: true,
+        minlength: 3,
+    },
+    email: {
+        type: String,
+        required: true,
+        unique: true,
+        lowercase: true,
+        trim: true,
+        validate: {
+            validator: emailValidator,
+            message: "Invalid Email passed to mongoose. (coming from userSchema)",
+        },
+    },
+    password: {
+        type: String,
+        required: true,
+        minlength: 8,
+    },
+});
 exports.User = mongoose_1.default.model("User", userSchema);
 exports.Event = mongoose_1.default.model("Event", eventSchema);
+exports.Admin = mongoose_1.default.model("Admin", adminSchema);

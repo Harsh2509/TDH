@@ -1,6 +1,8 @@
 import express from "express";
 import { Admin } from "../Database/index";
 import * as jwt from "jsonwebtoken";
+import { z } from "zod";
+import adminAuthentication from "../Middlewares/adminAuth";
 
 const router = express.Router();
 const secret = process.env.JWT_SECRET || "ThisIsTemporarySecretInUse";
@@ -9,7 +11,7 @@ router.post("/signup", async (req, res) => {
   const { name, email, password } = req.body;
   const admin = await Admin.findOne({ email });
   if (admin) {
-    res.status(403).json({ message: "Admin is registered" });
+    res.status(403).json({ message: "Admin is already registered" });
   } else {
     const newAdmin = new Admin({ name, email, password });
     await newAdmin.save();

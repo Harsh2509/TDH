@@ -38,13 +38,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const index_1 = require("../Database/index");
 const express_1 = __importDefault(require("express"));
 const jwt = __importStar(require("jsonwebtoken"));
+const userAuth_1 = __importDefault(require("../Middlewares/userAuth"));
 const router = express_1.default.Router();
 const secret = process.env.JWT_SECRET || "ThisIsTemporarySecretInUse";
 router.post("/signup", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { email, password, name, course, admissionNo, phoneNo } = req.body;
-    const user = yield index_1.User.findOne({ email, password });
+    const { email, password, name, course, admissionNo, phoneNo, branch, university, } = req.body;
+    const user = yield index_1.User.findOne({ email });
     if (user) {
-        res.status(403).json({ message: "User already exist." });
+        res.status(403).json({ message: "This email is registered." });
     }
     else {
         const newUser = new index_1.User({
@@ -54,12 +55,31 @@ router.post("/signup", (req, res) => __awaiter(void 0, void 0, void 0, function*
             course,
             admissionNo,
             phoneNo,
+            branch,
+            university,
         });
-        newUser.save();
+        yield newUser.save();
         const token = jwt.sign({ email, role: "user" }, secret, {
             expiresIn: "5h",
         });
         res.json({ message: "User Created successfully", token });
     }
 }));
+router.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { email, password } = req.body;
+    const user = yield index_1.User.findOne({ email, password });
+    if (!user) {
+        res.status(403).json({ message: "User Doesn't Exist." });
+    }
+    else {
+        const token = jwt.sign({ email, role: "user" }, secret, {
+            expiresIn: "5h",
+        });
+        res.json({ message: "Logged in successfully!", token });
+    }
+}));
+router.get("/test", userAuth_1.default, (req, res) => {
+    console.log(req.user);
+    res.send("Hi Harsh, Harsh this side!!");
+});
 exports.default = router;

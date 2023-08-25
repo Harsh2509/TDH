@@ -8,6 +8,7 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const cors_1 = __importDefault(require("cors"));
 const user_1 = __importDefault(require("./Routes/user"));
+const admin_1 = __importDefault(require("./Routes/admin"));
 const app = (0, express_1.default)();
 dotenv_1.default.config();
 const port = process.env.PORT;
@@ -26,3 +27,4 @@ mongoose_1.default
 app.use((0, cors_1.default)()); // To enable Cross Origin Requests
 app.use(express_1.default.json()); // To easily parse body in routes.
 app.use("/user", user_1.default);
+app.use("/admin", admin_1.default);
