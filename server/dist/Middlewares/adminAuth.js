@@ -35,7 +35,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const jwt = __importStar(require("jsonwebtoken"));
 const Database_1 = require("../Database");
 const secret = process.env.JWT_SECRET || "ThisIsTemporarySecretInUse";
-function userAuthentication(req, res, next) {
+function adminAuthentication(req, res, next) {
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.split(" ")[1];
     if (!token) {
@@ -46,12 +46,12 @@ function userAuthentication(req, res, next) {
             if (err || !user || typeof user === "string") {
                 return res.status(401).json({ error: "Need to Login again" });
             }
-            if (!(yield Database_1.User.findOne({ email: user.email }))) {
-                return res.status(401).json({ message: "User doesn't exist" });
+            if (!(yield Database_1.Admin.findOne({ email: user.email }))) {
+                return res.status(401).json({ message: "Admin doesn't exist" });
             }
             req.user = user;
             next();
         }));
     }
 }
-exports.default = userAuthentication;
+exports.default = adminAuthentication;

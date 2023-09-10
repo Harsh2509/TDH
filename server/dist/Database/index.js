@@ -50,7 +50,7 @@ const userSchema = new mongoose_1.Schema({
         },
     },
     password: { type: String, required: true, minLength: 8 },
-    course: { type: String, required: true },
+    course: { type: String, required: true, minlength: 1 },
     admissionNo: { type: Number, unique: true, required: true },
     certificates: [String],
     phoneNo: { type: Number, required: true, min: 1000000000 },

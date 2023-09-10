@@ -38,13 +38,23 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const index_1 = require("../Database/index");
 const jwt = __importStar(require("jsonwebtoken"));
+const zod_1 = require("zod");
 const router = express_1.default.Router();
 const secret = process.env.JWT_SECRET || "ThisIsTemporarySecretInUse";
+let adminSignupSchema = zod_1.z.object({
+    name: zod_1.z.string().min(3).max(60),
+    email: zod_1.z.string().email().max(80),
+    password: zod_1.z.string().min(8),
+});
 router.post("/signup", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { name, email, password } = req.body;
+    const validationResult = adminSignupSchema.safeParse(req.body);
+    if (!validationResult.success) {
+        return res.status(403).json({ error: validationResult.error.flatten() });
+    }
+    const { name, email, password } = validationResult.data;
     const admin = yield index_1.Admin.findOne({ email });
     if (admin) {
-        res.status(403).json({ message: "Admin is registered" });
+        res.status(403).json({ message: "Admin is already registered" });
     }
     else {
         const newAdmin = new index_1.Admin({ name, email, password });

@@ -35,29 +35,38 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const index_1 = require("../Database/index");
 const express_1 = __importDefault(require("express"));
+const zod_1 = require("zod");
 const jwt = __importStar(require("jsonwebtoken"));
 const userAuth_1 = __importDefault(require("../Middlewares/userAuth"));
+const index_1 = require("../Database/index");
 const router = express_1.default.Router();
 const secret = process.env.JWT_SECRET || "ThisIsTemporarySecretInUse";
+let userSignupSchema = zod_1.z.object({
+    email: zod_1.z.string().email().max(80),
+    password: zod_1.z.string().min(8).max(20),
+    name: zod_1.z.string().min(3).max(60),
+    course: zod_1.z.string().min(2).max(20),
+    admissionNo: zod_1.z.number().int(),
+    phoneNo: zod_1.z.number().int().gt(1000000000).lt(9999999999),
+    branch: zod_1.z.string().min(2).max(50),
+    university: zod_1.z.union([zod_1.z.literal("geu"), zod_1.z.literal("gehu")]),
+});
 router.post("/signup", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { email, password, name, course, admissionNo, phoneNo, branch, university, } = req.body;
-    const user = yield index_1.User.findOne({ email });
+    const validationResult = userSignupSchema.safeParse(req.body);
+    if (!validationResult.success) {
+        return res.json({ error: validationResult.error.flatten() });
+    }
+    let userDetails = validationResult.data;
+    const email = userDetails.email, admissionNo = userDetails.admissionNo;
+    const user = yield index_1.User.findOne({ $or: [{ email }, { admissionNo }] });
     if (user) {
-        res.status(403).json({ message: "This email is registered." });
+        res.status(403).json({
+            message: "Email and Admission Number must to unique. Something already exists in database.",
+        });
     }
     else {
-        const newUser = new index_1.User({
-            email,
-            password,
-            name,
-            course,
-            admissionNo,
-            phoneNo,
-            branch,
-            university,
-        });
+        const newUser = new index_1.User(userDetails);
         yield newUser.save();
         const token = jwt.sign({ email, role: "user" }, secret, {
             expiresIn: "5h",
@@ -67,11 +76,14 @@ router.post("/signup", (req, res) => __awaiter(void 0, void 0, void 0, function*
 }));
 router.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password } = req.body;
-    const user = yield index_1.User.findOne({ email, password });
+    const user = yield index_1.User.findOne({ email });
     if (!user) {
-        res.status(403).json({ message: "User Doesn't Exist." });
+        return res.status(403).json({ message: "User Doesn't Exist." });
     }
     else {
+        if (user.password !== password) {
+            return res.status(403).json({ message: "Wrong password inputted" });
+        }
         const token = jwt.sign({ email, role: "user" }, secret, {
             expiresIn: "5h",
         });
@@ -79,7 +91,6 @@ router.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
 }));
 router.get("/test", userAuth_1.default, (req, res) => {
-    console.log(req.user);
-    res.send("Hi Harsh, Harsh this side!!");
+    res.send("You are on a test page. Hope to see you on our website ( •̀ ω •́ )✧");
 });
 exports.default = router;

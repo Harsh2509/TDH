@@ -48,10 +48,3 @@
 # Admin page
 
 - ability to edit the website's pictures and the texts without changing it from the source codes.
-
-# Current Limitations
-
-- The server gets down on inappropriate inputs like when:
-  - duplicate application number is passed.
-  - Password Size < 8
-  - emailValidator fails
